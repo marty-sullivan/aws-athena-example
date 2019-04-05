@@ -34,7 +34,7 @@ Resources:
                 Action:
                   - 'cloudformation:*'
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*'
+                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/athena-lambda-example*'
               - Effect: 'Allow'
                 Action:
                   - 'codebuild:*'
