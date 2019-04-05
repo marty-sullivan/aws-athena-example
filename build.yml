@@ -35,9 +35,9 @@ Resources:
                   - 'cloudformation:*'
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/athena-lambda-example*'
+                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31'
               - Effect: 'Allow'
                 Action:
-                  - 'codebuild:*'
                   - 'events:*'
                   - 'glue:*'
                   - 'iam:*'
