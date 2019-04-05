@@ -35,6 +35,6 @@ Resources:
                 - 's3:AbortMultipartUpload'
                 - 's3:PutObject'
               Resource:
-                !Sub '${OutputBucket.Arn}'
-                !Sub '${OutputBucket.Arn}/*'
+                - !Sub '${OutputBucket.Arn}'
+                - !Sub '${OutputBucket.Arn}/*'
           
