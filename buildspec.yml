@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - 'apt-get update -y'
+      - 'apt-get install -y --no-install-recommends libgeos-dev'
+      - 'pip3 install numpy'
+  
+  build:
+    commands:
+      - 'pip3 install -t $CODEBUILD_SRC_DIR/lambda pillow git+https://github.com/matplotlib/basemap.git'
+      - 'rm -f $CODEBUILD_SRC_DIR/lambda/mpl_toolkits/basemap/data/*_f.*'
+  
+  post_build:
+    commands:
+      - >-
+        aws cloudformation package 
+          --template-file $CODEBUILD_SRC_DIR/template.yml 
+          --s3-bucket $BUILD_BUCKET 
+          --output-template-file $CODEBUILD_SRC_DIR/deployment.yml
+  
+      - >-
+        aws cloudformation deploy 
+          --stack-name athena-lambda-example 
+          --template-file $CODEBUILD_SRC_DIR/deployment.yml 
+          --s3-bucket $BUILD_BUCKET 
+          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 

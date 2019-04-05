@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'Resources for Athena/Lambda Example by Marty J. Sullivan'
+
+#Parameters:
+
+Globals:
+  
+  Function:
+    Handler: 'entry.lambda_handler'
+    MemorySize: 128
+    Runtime: 'python3.7'
+    Timeout: 300
+
+Resources:
+  
+  OutputBucket:
+    Type: 'AWS::S3::Bucket'
+  
+  AthenaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: './lambda'
+      Policies:
+        - 'AWSLambdaBasicExecutionRole'
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Action: 
+                - 's3:GetBucketLocation'
+                - 's3:GetObject'
+                - 's3:ListBucket'
+                - 's3:ListBucketMultipartUploads'
+                - 's3:ListMultipartUploadParts'
+                - 's3:AbortMultipartUpload'
+                - 's3:PutObject'
+              Resource:
+                !Sub '${OutputBucket.Arn}'
+                !Sub '${OutputBucket.Arn}/*'
+          
