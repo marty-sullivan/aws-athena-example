@@ -38,3 +38,54 @@ Resources:
                 - !Sub '${OutputBucket.Arn}'
                 - !Sub '${OutputBucket.Arn}/*'
           
+  AthenaMachineRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service:
+                - !Sub 'states.${AWS::URLSuffix}'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Sub '${AWS::AccountId}'
+      Policies:
+        - PolicyName: 'invoke-functions'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  - !Sub '${AthenaFunction.Arn}'
+
+  AthenaMachine:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      RoleArn: !Sub '${AthenaMachineRole.Arn}'
+      DefinitionString: !Sub |-
+        {
+          "Comment": "State Machine for Athena Lambda Example by Marty J. Sullivan",
+          "StartAt": "ExecuteAthenaQuery",
+          "States": {
+            "ExecuteQuery": {
+              "Type": "Task",
+              "Resource": "${AthenaFunction.Arn}",
+              "Next": "WaitForAthenaQuery"
+            },
+            "WaitForAthenaQuery": {
+              "Type": "Wait",
+              "Seconds": 30,
+              "Next": "PlotMap"
+            },
+            "PlotMap": {
+              "Type": "Task",
+              "Resource": "${AthenaFunction.Arn},
+              "End": true
+            }
+          }
+        }
