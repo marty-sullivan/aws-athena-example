@@ -72,7 +72,7 @@ Resources:
           "Comment": "State Machine for Athena Lambda Example by Marty J. Sullivan",
           "StartAt": "ExecuteAthenaQuery",
           "States": {
-            "ExecuteQuery": {
+            "ExecuteAthenaQuery": {
               "Type": "Task",
               "Resource": "${AthenaFunction.Arn}",
               "Next": "WaitForAthenaQuery"
