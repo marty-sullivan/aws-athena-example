@@ -84,7 +84,7 @@ Resources:
             },
             "PlotMap": {
               "Type": "Task",
-              "Resource": "${AthenaFunction.Arn},
+              "Resource": "${AthenaFunction.Arn}",
               "End": true
             }
           }
