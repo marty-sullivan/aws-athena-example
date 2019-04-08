@@ -98,12 +98,12 @@ def lambda_handler(event, context):
   frames = []
   
   for i in range(img_num):
-    frames.append(Image.open('{0:03d}.png'.format(i)))
+    frames.append(Image.open('/tmp/{0:03d}.png'.format(i)))
   
   frames[0].save('/tmp/test.gif', save_all=True, append_images=frames[1:], duration=750, loop=0)
   
   for i in range(img_num):
-    remove('{0:03d}.png'.format(i))
+    remove('/tmp/{0:03d}.png'.format(i))
     
   bucket.upload_file(
     Filename='/tmp/test.gif',

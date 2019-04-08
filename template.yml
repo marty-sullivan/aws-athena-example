@@ -24,7 +24,7 @@ Globals:
     Handler: 'entry.lambda_handler'
     MemorySize: 2048
     Runtime: 'python3.7'
-    Timeout: 300
+    Timeout: 900
     Environment:
       Variables:
         OUTPUT_BUCKET: !Sub '${OutputBucket}'
