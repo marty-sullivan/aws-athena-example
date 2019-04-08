@@ -22,7 +22,7 @@ Globals:
   
   Function:
     Handler: 'entry.lambda_handler'
-    MemorySize: 2048
+    MemorySize: 3008
     Runtime: 'python3.7'
     Timeout: 900
     Environment:
