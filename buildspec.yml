@@ -6,7 +6,7 @@ phases:
       - 'apt-get update -y'
       - 'apt-get install -y --no-install-recommends libgeos-dev'
       - 'pip3 install numpy'
-      - 'cp -R /usr/lib/x86_64-linux-gnu/libgeos* $CODEBUILD_SRC_DIR/lambda'
+      - 'cp -R /usr/lib/libgeos* $CODEBUILD_SRC_DIR/lambda'
   
   build:
     commands:
