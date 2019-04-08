@@ -11,6 +11,7 @@ phases:
     commands:
       - 'pip3 install -t $CODEBUILD_SRC_DIR/lambda pillow git+https://github.com/matplotlib/basemap.git'
       - 'rm -f $CODEBUILD_SRC_DIR/lambda/mpl_toolkits/basemap/data/*_f.*'
+      - 'rm -f $CODEBUILD_SRC_DIR/lambda/mpl_toolkits/basemap/data/*.jpg'
   
   post_build:
     commands:

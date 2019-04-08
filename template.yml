@@ -2,7 +2,21 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: 'Resources for Athena/Lambda Example by Marty J. Sullivan'
 
-#Parameters:
+Parameters:
+
+  CenterLatitude:
+    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Type: 'Number'
+    Default: 42.4534
+    MaxValue: 52.8077
+    MinValue: 20.1920
+    
+  CenterLongitude:
+    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Type: 'Number'
+    Default: -76.4735
+    MaxValue: -60.8856
+    MinValue: -130.1034
 
 Globals:
   
