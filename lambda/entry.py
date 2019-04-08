@@ -45,7 +45,7 @@ def lambda_handler(event, context):
   
   x, y = m(lons, lats)
   levels = list(np.linspace(min(vals), max(vals), num=25))
-  contours = ax.tricontourf()
+  contours = ax.tricontourf(x, y, vals, levels=levels, cmap=plt.cm.gnuplot2, alpha=0.5, antialiased=True, zorder=20)
   fig.colorbar(contours, cax=cax, orientation='vertical', format='%.1f')
   
   digits = []
