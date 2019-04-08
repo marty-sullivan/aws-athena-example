@@ -66,12 +66,12 @@ def lambda_handler(event, context):
   m.drawcounties(linewidth=0.5, zorder=15)
   
   for timestep, dataset in timesteps.items():
-    x, y = m(lons, lats)
+    x, y = m(dataset['lons'], dataset['lats'])
     step_label = fig.text(0.37, 0.135, timestep, bbox=dict(facecolor='white'))
     
     try: 
-      levels = list(np.linspace(min(vals), max(vals), num=25))
-      contours = ax.tricontourf(x, y, vals, levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
+      levels = list(np.linspace(min_val, max_val, num=25))
+      contours = ax.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
       fig.colorbar(contours, cax=cax, orientation='vertical', format='%.1f')
     
     except:
