@@ -14,12 +14,12 @@ from PIL import Image
 timesteps = { }
 lons = None
 lats = None
+desc = None
 max_val = float('-inf')
 min_val = float('inf')
 
-with open('./cornell_temp.csv') as dataset_file:
+with open('./cayuga-temp.csv') as dataset_file:
   dataset_csv = csv.DictReader(dataset_file)
-  #img_num = 0
   
   for row in dataset_csv:
     vals = json.loads(row['vals'])
@@ -30,6 +30,7 @@ with open('./cornell_temp.csv') as dataset_file:
       vals=vals,
     )
     
+    desc = row['description'] if not desc else desc
     lons = json.loads(row['longitudes']) if not lons else lons
     lats = json.loads(row['latitudes']) if not lats else lats
     min_val = min(vals) if min(vals) < min_val else min_val
@@ -37,7 +38,8 @@ with open('./cornell_temp.csv') as dataset_file:
     
 img_num = 0
 fig, ax = plt.subplots()
-cax = fig.add_axes([0.72, 0.12, 0.02, 0.75])
+cax = fig.add_axes([0.77, 0.12, 0.02, 0.75])
+ax.set_title(desc)
 
 m = Basemap(
   resolution='h',
@@ -56,17 +58,22 @@ m = Basemap(
 
 m.fillcontinents(color='white', lake_color='aqua')
 m.drawcoastlines()
+m.drawrivers(color='aqua')
+m.drawcounties(linewidth=0.5, zorder=15)
 
 for timestep, dataset in timesteps.items():
   x, y = m(dataset['lons'], dataset['lats'])
-  levels = list(numpy.linspace(min_val, max_val, num=25))
-  mymap = ax.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
-  fig.colorbar(mymap, cax=cax, orientation='vertical', format='%.1f')
-  txt = fig.text(0.35, 0.135, timestep, bbox=dict(facecolor='white'))
+  txt = fig.text(0.37, 0.135, timestep, bbox=dict(facecolor='white'))
   
+  try:
+    levels = list(numpy.linspace(min_val, max_val, num=25))
+    mymap = ax.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.gnuplot2, alpha=0.5, antialiased=True, zorder=20)
+    fig.colorbar(mymap, cax=cax, orientation='vertical', format='%.1f')
+  
+  except:
+    mymap = None
   
   digits = []
-  # for i in range(0, len(dataset['vals']), 25):
   for i in range(len(dataset['vals'])):
     px, py = m(dataset['lons'][i], dataset['lats'][i])
     digits.append(ax.text(px, py, dataset['vals'][i], fontsize=3, ha='center', va='center'))
@@ -79,8 +86,9 @@ for timestep, dataset in timesteps.items():
   for i in digits:
     i.remove()
   
-  for i in mymap.collections:
-    i.remove()
+  if mymap:
+    for i in mymap.collections:
+      i.remove()
 
 frames = []
 
