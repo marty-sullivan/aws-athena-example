@@ -78,9 +78,9 @@ def lambda_handler(event, context):
       contours = None
     
     digits = []
-    for i in range(len(vals)):
+    for i in range(len(dataset['vals'])):
       px, py = m(lons[i], lats[i])
-      digit = ax.text(px, py, vals[i], fontsize=3, ha='center', va='center')
+      digit = ax.text(px, py, dataset['vals'][i], fontsize=3, ha='center', va='center')
       digits.append(digit)
     
     plt.savefig('/tmp/{0:03d}.png'.format(img_num), bbox_inches='tight', dpi=300)
