@@ -42,6 +42,7 @@ def lambda_handler(event, context):
   m.fillcontinents(color='white', lake_color='aqua')
   m.drawcoastlines()
   m.drawrivers(color='blue')
+  m.drawcounties(linewidth=0.5, zorder=15)
   
   x, y = m(lons, lats)
   levels = list(np.linspace(min(vals), max(vals), num=25))
