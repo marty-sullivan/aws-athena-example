@@ -32,6 +32,8 @@ Globals:
     Timeout: 900
     Environment:
       Variables:
+        # NDFD_DATABASE: !Sub '{CornellEasStack.Outputs.'
+        # COORDINATES_TABLE: !Sub '${CornellEasStack.Outputs.NdfdCoordinatesTable}'
         OUTPUT_BUCKET: !Sub '${OutputBucket}'
 
 Resources:
@@ -125,5 +127,5 @@ Resources:
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
-        GlueDatabaseSuffix: ''
+        DatabaseName: 'cornell_eas_example'
         

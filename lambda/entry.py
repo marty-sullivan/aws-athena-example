@@ -22,6 +22,49 @@ desc = None
 max_val = float('-inf')
 min_val = float('inf')
 
+class QueryStatusUnchangedException(Exception):
+  pass
+
+QUERY_TEMPLATE = '''SELECT
+  concat(name,' (', unit, ')') as description,
+  date_format(
+    date_add(
+      'second', 
+      CAST(TRUNCATE(CAST(projected_hour AS REAL) * 3600) AS BIGINT), 
+      from_unixtime(CAST(reference_time AS BIGINT), 'UTC')
+    ) AT TIME ZONE '{TimeZone}',
+    '%Y-%m-%d %T %a'
+  ) AS forecast_time,
+  array_agg(lat) AS latitudes,
+  array_agg(lon) AS longitudes,
+  array_agg(ROUND(CAST(value AS DECIMAL(6,3)))) AS vals
+FROM {LatestTable}
+JOIN {CoordinatesTable}
+  ON  {LatestTable}.area={CoordinatesTable}.area 
+  AND {LatestTable}.x={CoordinatesTable}.x 
+  AND {LatestTable}.y={CoordinatesTable}.y
+JOIN {ElementsTable}
+  ON {LatestTable}.element={ElementsTable}.element
+WHERE 
+  status='opnl'
+  AND ndfd_latest.area='conus'
+  AND ndfd_latest.element='{Element}'
+  AND {CoordinatesTable}.x BETWEEN {MinX} AND {MaxX}
+  AND {CoordinatesTable}.y BETWEEN {MinY} AND {MaxY}
+GROUP BY 
+  concat(name,' (', unit, ')'),
+  date_format(
+    date_add(
+      'second', 
+      CAST(TRUNCATE(CAST(projected_hour AS REAL) * 3600) AS BIGINT), 
+      from_unixtime(CAST(reference_time AS BIGINT), 'UTC')
+    ) AT TIME ZONE '{TimeZone}',
+    '%Y-%m-%d %T %a'
+  )
+ORDER BY
+  forecast_time
+'''
+
 with open('{0}/cayuga-temp.csv'.format(environ['LAMBDA_TASK_ROOT'])) as csv_file:
   dataset_csv = csv.DictReader(csv_file)
   
@@ -41,14 +84,31 @@ with open('{0}/cayuga-temp.csv'.format(environ['LAMBDA_TASK_ROOT'])) as csv_file
     max_val = max(vals) if max(vals) > max_val else max_val
 
 def lambda_handler(event, context):
-  if 'QueryExecutionId' in event:
-    create_map(event['QueryExecutionId'])
+  if event['QueryStatus'] in ['NEW']:
+    execute_query()
   
   else:
-    execute_query()
+    query_execution = athena.get_query_execution(
+      QueryExecutionId=event['QueryExecutionId'],
+    )['QueryExecution']
+
+    query_status = query_execution['Status']['State']
+    
+    if query_status == event['QueryStatus']:
+      raise QueryStatusUnchangedException('QueryStatusUnchangedException')
+    
+    event['QueryStatus'] = query_status
+    
+    if query_status in ['SUCCEEDED']:
+      pass
+  # if 'QueryExecutionId' in event:
+  #   create_map(event['QueryExecutionId'])
+  
+  # else:
+  #   execute_query()
     
 def execute_query():
-  pass
+  
 
 def create_map(query_execution_id):
   img_num = 0
