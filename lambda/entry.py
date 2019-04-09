@@ -49,8 +49,8 @@ JOIN {ElementsTable}
   ON {LatestTable}.element={ElementsTable}.element
 WHERE 
   status='opnl'
-  AND ndfd_latest.area='conus'
-  AND ndfd_latest.element='{NdfdElement}'
+  AND {LatestTable}.area='conus'
+  AND {LatestTable}.element='{NdfdElement}'
   AND {CoordinatesTable}.x BETWEEN {MinX} AND {MaxX}
   AND {CoordinatesTable}.y BETWEEN {MinY} AND {MaxY}
 GROUP BY 
