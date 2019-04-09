@@ -84,6 +84,8 @@ Resources:
               Resource:
                 - !Sub '${OutputBucket.Arn}'
                 - !Sub '${OutputBucket.Arn}/*'
+                - !Sub 'arn:${AWS::Partition}:s3:::${CornellEasBucket}'
+                - !Sub 'arn:${AWS::Partition}:s3:::${CornellEasBucket}/*'
           
   AthenaMachineRole:
     Type: 'AWS::IAM::Role'
