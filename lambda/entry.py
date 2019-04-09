@@ -11,6 +11,7 @@ from os import environ, remove
 from PIL import Image
 
 aws = Session()
+athena = aws.client('athena')
 s3 = aws.resource('s3')
 bucket = s3.Bucket(environ['OUTPUT_BUCKET'])
 
@@ -40,6 +41,16 @@ with open('{0}/cayuga-temp.csv'.format(environ['LAMBDA_TASK_ROOT'])) as csv_file
     max_val = max(vals) if max(vals) > max_val else max_val
 
 def lambda_handler(event, context):
+  if 'QueryExecutionId' in event:
+    create_map(event['QueryExecutionId'])
+  
+  else:
+    execute_query()
+    
+def execute_query():
+  pass
+
+def create_map(query_execution_id):
   img_num = 0
   fig, ax = plt.subplots()
   cax = fig.add_axes([0.77, 0.12, 0.02, 0.75])
@@ -80,7 +91,7 @@ def lambda_handler(event, context):
     digits = []
     for i in range(len(dataset['vals'])):
       px, py = m(lons[i], lats[i])
-      digit = ax.text(px, py, dataset['vals'][i], fontsize=3, ha='center', va='center')
+      digit = ax.text(px, py, dataset['vals'][i], fontsize=4, ha='center', va='center')
       digits.append(digit)
     
     plt.savefig('/tmp/{0:03d}.png'.format(img_num), bbox_inches='tight', dpi=300)
