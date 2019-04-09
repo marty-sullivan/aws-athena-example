@@ -134,6 +134,7 @@ def create_map(event):
   while resp:
     for row in resp['ResultSet']['Rows']:
       dataset = { }
+      row = row['Data']
       timestep = row[1]['VarCharValue']
       desc = row[0]['VarCharValue'] if not desc else desc
       dataset['lats'] = json.loads(row[2]['VarCharValue'])
