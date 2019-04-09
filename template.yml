@@ -123,7 +123,7 @@ Resources:
   CornellEasStack:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
-      TemplateURL: !Sub 'https://s3.amazonaws.com/${CornellEasBucket}/metadata/cloudformation/cornell-eas-1.0.0.yml'
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${CornellEasBucket}/datasets/master/ndfd/metadata/template.yml'
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
