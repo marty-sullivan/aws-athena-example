@@ -113,7 +113,7 @@ def execute_query(event):
     ResultConfiguration=dict(
       OutputLocation=datetime.utcnow().strftime('s3://{0}/results/%Y-%m-%d-%H-%M-%S'.format(environ['OUTPUT_BUCKET'])),
     ),
-  )
+  )['QueryExecutionId']
   
   event['QueryStatus'] = 'QUEUED'
   
