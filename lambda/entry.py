@@ -6,23 +6,25 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from boto3.session import Session
+from datetime import datetime
 from mpl_toolkits.basemap import Basemap
 from os import environ, remove
 from PIL import Image
+from pyproj import Proj
+
+# NDFD CONUS Projection
+p = Proj('+units=m +a=6371200.0 +b=6371200.0 +lon_0=265.0 +proj=lcc +lat_2=25.0 +lat_1=25.0 +lat_0=25.0')
+offset_x, offset_y = p(238.445999, 20.191999)
 
 aws = Session()
 athena = aws.client('athena')
 s3 = aws.resource('s3')
 bucket = s3.Bucket(environ['OUTPUT_BUCKET'])
 
-timesteps = { }
-lons = None
-lats = None
-desc = None
-max_val = float('-inf')
-min_val = float('inf')
+class QueryIncompleteException(Exception):
+  pass
 
-class QueryStatusUnchangedException(Exception):
+class QueryFailedException(Exception):
   pass
 
 QUERY_TEMPLATE = '''SELECT
@@ -48,7 +50,7 @@ JOIN {ElementsTable}
 WHERE 
   status='opnl'
   AND ndfd_latest.area='conus'
-  AND ndfd_latest.element='{Element}'
+  AND ndfd_latest.element='{NdfdElement}'
   AND {CoordinatesTable}.x BETWEEN {MinX} AND {MaxX}
   AND {CoordinatesTable}.y BETWEEN {MinY} AND {MaxY}
 GROUP BY 
@@ -65,52 +67,90 @@ ORDER BY
   forecast_time
 '''
 
-with open('{0}/cayuga-temp.csv'.format(environ['LAMBDA_TASK_ROOT'])) as csv_file:
-  dataset_csv = csv.DictReader(csv_file)
-  
-  for row in dataset_csv:
-    vals = json.loads(row['vals'])
-    
-    timesteps[row['forecast_time']] = dict(
-      lons = json.loads(row['longitudes']),
-      lats = json.loads(row['latitudes']),
-      vals = vals,
-    )
-    
-    desc = row['description'] if not desc else desc
-    lons = json.loads(row['longitudes']) if not lons else lons
-    lats = json.loads(row['latitudes']) if not lats else lats
-    min_val = min(vals) if min(vals) < min_val else min_val
-    max_val = max(vals) if max(vals) > max_val else max_val
-
 def lambda_handler(event, context):
-  if event['QueryStatus'] in ['NEW']:
-    execute_query()
+  if not event or 'QueryStatus' not in event:
+    event = execute_query(event)
   
   else:
     query_execution = athena.get_query_execution(
       QueryExecutionId=event['QueryExecutionId'],
     )['QueryExecution']
 
-    query_status = query_execution['Status']['State']
+    event['QueryStatus'] = query_execution['Status']['State']
     
-    if query_status == event['QueryStatus']:
-      raise QueryStatusUnchangedException('QueryStatusUnchangedException')
+    if event['QueryStatus'] not in ['SUCCEEDED', 'FAILED']:
+      raise QueryIncompleteException('QueryIncompleteException')
     
-    event['QueryStatus'] = query_status
+    if event['QueryStatus'] in ['FAILED']:
+      raise QueryFailedException('QueryFailedException')
+      
+    create_map(event)
     
-    if query_status in ['SUCCEEDED']:
-      pass
-  # if 'QueryExecutionId' in event:
-  #   create_map(event['QueryExecutionId'])
+  return event
   
-  # else:
-  #   execute_query()
-    
-def execute_query():
+def execute_query(event):
+  grid_x, grid_y = p(environ['CENTER_LONGITUDE'], environ['CENTER_LATITUDE'])
+  x = int(round((grid_x - offset_x) / 2539.703))
+  y = int(round((grid_y - offset_y) / 2539.703))
   
+  query_string = QUERY_TEMPLATE.format(
+    CoordinatesTable=environ['COORDINATES_TABLE'],
+    ElementsTable=environ['ELEMENTS_TABLE'],
+    LatestTable=environ['LATEST_TABLE'],
+    TimeZone=environ['TIMEZONE'],
+    NdfdElement=environ['NDFD_ELEMENT'],
+    MaxX=x + 15,
+    MaxY=y + 15,
+    MinX=x - 15,
+    MinY=y - 15,
+  )
+  
+  event['QueryExecutionId'] = athena.start_query_execution(
+    QueryString=query_string,
+    QueryExecutionContext=dict(
+      Database=environ['NDFD_DATABASE'],
+    ),
+    ResultConfiguration=dict(
+      OutputLocation=datetime.utcnow().strftime('s3://{0}/results/%Y-%m-%d-%H-%M-%S'.format(environ['OUTPUT_BUCKET'])),
+    ),
+  )
+  
+  event['QueryStatus'] = 'QUEUED'
+  
+  return event
 
-def create_map(query_execution_id):
+def create_map(event):
+  timesteps = { }
+  global_lons = None
+  global_lats = None
+  desc = None
+  max_val = float('-inf')
+  min_val = float('inf')
+    
+  resp = athena.get_query_results(
+    QueryExecutionId=event['QueryExecutionId'],
+  )
+  
+  while resp:
+    for row in resp['ResultSet']['Rows']:
+      dataset = { }
+      timestep = row[1]['VarCharValue']
+      desc = row[0]['VarCharValue'] if not desc else desc
+      dataset['lats'] = json.loads(row[2]['VarCharValue'])
+      dataset['lons'] = json.loads(row[3]['VarCharValue'])
+      dataset['vals'] = json.loads(row[4]['VarCharValue'])
+      timesteps[timestep] = dataset
+      
+      global_lons = dataset['lons'] if not global_lons else global_lons
+      global_lats = dataset['lats'] if not global_lats else global_lats
+      max_val = max(dataset['vals']) if max(dataset['vals']) > max_val else max_val
+      min_val = min(dataset['vals']) if min(dataset['vals']) < min_val else min_val
+    
+    resp = athena.query_results(
+      QueryExecutionId=event['QueryExecutionId'],
+      NextToken=resp['NextToken']
+    ) if 'NextToken' in resp else None
+  
   img_num = 0
   fig, ax = plt.subplots()
   cax = fig.add_axes([0.77, 0.12, 0.02, 0.75])
@@ -124,10 +164,10 @@ def create_map(query_execution_id):
     lat_0=25.0,
     lat_1=25.0,
     lat_2=25.0,
-    llcrnrlon=min(lons) - 0.05,
-    llcrnrlat=min(lats),
-    urcrnrlon=max(lons) + 0.05,
-    urcrnrlat=max(lats),
+    llcrnrlon=min(global_lons) - 0.05,
+    llcrnrlat=min(global_lats),
+    urcrnrlon=max(global_lons) + 0.05,
+    urcrnrlat=max(global_lats),
     ax=ax,
   )
   
@@ -150,7 +190,7 @@ def create_map(query_execution_id):
     
     digits = []
     for i in range(len(dataset['vals'])):
-      px, py = m(lons[i], lats[i])
+      px, py = m(dataset['lons'][i], dataset['lats'][i])
       digit = ax.text(px, py, dataset['vals'][i], fontsize=4, ha='center', va='center')
       digits.append(digit)
     
