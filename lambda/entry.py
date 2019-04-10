@@ -173,9 +173,11 @@ def create_map(event):
     lat_0=25.0,
     lat_1=25.0,
     lat_2=25.0,
-    llcrnrlon=min(global_lons) - 0.05,
+    # llcrnrlon=min(global_lons) - 0.05,
+    llcrnrlon=min(global_lons),
     llcrnrlat=min(global_lats),
-    urcrnrlon=max(global_lons) + 0.05,
+    # urcrnrlon=max(global_lons) + 0.05,
+    urcrnrlon=max(global_lons),
     urcrnrlat=max(global_lats),
     ax=ax,
   )

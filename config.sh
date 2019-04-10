@@ -3,7 +3,7 @@
 # Name of the CloudFormation Stack to create
 #
 
-STACK_NAME="FingerlakesTemperatureForecast"
+STACK_NAME="SFTemperatureForecast"
 
 #
 # Indicates whether to auto-run the state machine at half-past each hour
@@ -34,8 +34,8 @@ SQUARE_KM="75"
 # Longitude: -130.1034 - -60.8856
 #
 
-CENTER_LATITUDE="42.6777"
-CENTER_LONGITUDE="-76.6990"
+CENTER_LATITUDE="37.7749"
+CENTER_LONGITUDE="-122.4194"
 
 #
 # Timezone for timestamps in the forecast (must be valid TZ database name)
