@@ -62,7 +62,7 @@ Globals:
         CENTER_LATITUDE: !Sub '${CenterLatitude}'
         CENTER_LONGITUDE: !Sub '${CenterLongitude}'
         NDFD_ELEMENT: !Sub '${NdfdElement}'
-        SQUARE_KM: !SUb '${SquareKm}'
+        SQUARE_KM: !Sub '${SquareKm}'
         NDFD_DATABASE: !Sub '${CornellEasStack.Outputs.NdfdDatabase}'
         COORDINATES_TABLE: !Sub '${CornellEasStack.Outputs.NdfdCoordinatesTable}'
         ELEMENTS_TABLE: !Sub '${CornellEasStack.Outputs.NdfdElementsTable}'
