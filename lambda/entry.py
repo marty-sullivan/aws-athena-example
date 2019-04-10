@@ -164,6 +164,9 @@ def create_map(event):
   img_num = 0
   fig, ax = plt.subplots()
   
+  llcrnrx, llcrnry = p(min(global_lons), min(global_lats))
+  urcrnrx, urcrnry = p(max(global_lons), max(global_lats))
+  
   m = Basemap(
     resolution='h',
     projection='lcc',
@@ -172,12 +175,10 @@ def create_map(event):
     lat_0=25.0,
     lat_1=25.0,
     lat_2=25.0,
-    # llcrnrlon=min(global_lons) - 0.05,
-    llcrnrlon=min(global_lons),
-    llcrnrlat=min(global_lats),
-    # urcrnrlon=max(global_lons) + 0.05,
-    urcrnrlon=max(global_lons),
-    urcrnrlat=max(global_lats),
+    llcrnrx=llcrnrx,
+    llcrnry=llcrnry,
+    urcrnrx=urcrnrx,
+    urcrnry=urcrnry,
     ax=ax,
   )
   
