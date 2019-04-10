@@ -2,18 +2,23 @@
 
 source ./config.sh
 
-echo "Initializing $STACK_NAME CloudFormation Stack (1-2 minutes)..."
+STACK_EXISTS=$()
 
-aws cloudformation deploy \
-  --stack-name "$STACK_NAME" \
-  --template-file ./init.yml \
-  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  --parameter-overrides \
-    "NdfdElement=$NDFD_ELEMENT" \
-    "SquareKm=$SQUARE_KM" \
-    "CenterLatitude=$CENTER_LATITUDE" \
-    "CenterLongitude=$CENTER_LONGITUDE" \
-    "TimeZone=$TIMEZONE" \
+if aws cloudformation describe-stacks --stack-name $STACK_NAME 2>&1 | grep -q "ValidationError"
+then
+  echo "Initializing $STACK_NAME CloudFormation Stack (1-2 minutes)..."
+  
+  aws cloudformation deploy \
+    --stack-name "$STACK_NAME" \
+    --template-file ./init.yml \
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+    --parameter-overrides \
+      "NdfdElement=$NDFD_ELEMENT" \
+      "SquareKm=$SQUARE_KM" \
+      "CenterLatitude=$CENTER_LATITUDE" \
+      "CenterLongitude=$CENTER_LONGITUDE" \
+      "TimeZone=$TIMEZONE" \
+fi
 
 BUILD_PROJECT=$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \

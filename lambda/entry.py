@@ -162,8 +162,6 @@ def create_map(event):
   
   img_num = 0
   fig, ax = plt.subplots()
-  cax = fig.add_axes([0.77, 0.12, 0.02, 0.75])
-  ax.set_title(desc)
   
   m = Basemap(
     resolution='h',
@@ -188,13 +186,13 @@ def create_map(event):
   m.drawcounties(linewidth=0.5, zorder=15)
   
   for timestep, dataset in timesteps.items():
+    ax.set_title('{0} {1}'.format(desc, timestep))
     x, y = m(dataset['lons'], dataset['lats'])
-    step_label = fig.text(0.37, 0.135, timestep, bbox=dict(facecolor='white'))
     
     try: 
       levels = list(np.linspace(min_val, max_val, num=25))
       contours = ax.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
-      fig.colorbar(contours, cax=cax, orientation='vertical', format='%.1f')
+      fig.colorbar(contours, orientation='vertical', format='%.1f', pad=0.02)
     
     except:
       contours = None
@@ -207,8 +205,6 @@ def create_map(event):
     
     plt.savefig('/tmp/{0:03d}.png'.format(img_num), bbox_inches='tight', dpi=300)
     img_num += 1
-    
-    step_label.remove()
     
     for digit in digits:
       digit.remove()
