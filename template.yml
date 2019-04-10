@@ -147,7 +147,7 @@ Resources:
                     "QueryIncompleteException"
                   ],
                   "BackoffRate": 1,
-                  "IntervalInSeconds": 30,
+                  "IntervalSeconds": 30,
                   "MaxAttempts": 59
                 }
               ]
