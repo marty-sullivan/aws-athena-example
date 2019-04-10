@@ -18,7 +18,7 @@ offset_x, offset_y = p(238.445999, 20.191999)
 
 # Square KM offset
 square_km = float(environ['SQUARE_KM'])
-km_offset = round(square_km / 2.5 / 2)
+km_offset = int(round(square_km / 2.5 / 2))
 
 aws = Session()
 athena = aws.client('athena')
