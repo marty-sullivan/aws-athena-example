@@ -8,12 +8,16 @@ Parameters:
     Description: 'The NDFD weather element to retrieve (e.g. temp, mint, maxt, sky)'
     Type: 'String'
 
+  SquareKm:
+    Description: 'The Square KM of the forecast map'
+    Type: 'Number'
+
   CenterLatitude:
-    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Description: 'The Latitude of the center point of the forecast; Default is Cayuga Lake'
     Type: 'Number'
     
   CenterLongitude:
-    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Description: 'The Latitude of the center point of the forecast; Default is Cayuga Lake'
     Type: 'Number'
   
   TimeZone:
@@ -29,6 +33,14 @@ Parameters:
     Type: 'String'
     Default: 'https://github.com/marty-sullivan/aws-athena-example.git'
 
+Outputs:
+  
+  BuildBucket:
+    Value: !Sub '${BuildBucket}'
+  
+  BuildProject:
+    Value: !Sub '${BuildProject}'
+  
 Resources:
 
   BuildBucket:
@@ -103,6 +115,8 @@ Resources:
             Value: !Sub '${AWS::StackName}'
           - Name: 'NDFD_ELEMENT'
             Value: !Sub '${NdfdElement}'
+          - Name: 'SQUARE_KM'
+            Value: !Sub '${SquareKm}'
           - Name: 'CENTER_LATITUDE'
             Value: !Sub '${CenterLatitude}'
           - Name: 'CENTER_LONGITUDE'

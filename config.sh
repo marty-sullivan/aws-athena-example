@@ -3,7 +3,13 @@
 # Name of the CloudFormation Stack to create
 #
 
-STACK_NAME="AthenaLambdaExample"
+STACK_NAME="FingerlakesTemperatureForecast"
+
+#
+# Indicates whether to auto-run the state machine at half-past each hour
+#
+
+AUTORUN="true"
 
 #
 # NDFD weather element to forecast
@@ -11,10 +17,18 @@ STACK_NAME="AthenaLambdaExample"
 
 NDFD_ELEMENT="temp"
 
+
 #
-# Coordinates for the center point of the forecast
+# Square KM for the forecast map
+# Note: Larger area is fine, just understand: Lambda will run longer and output data will be larger!
 #
-# Contiguous US boundaries for NDFD:
+
+SQUARE_KM="75"
+
+#
+# Coordinates for the center point of the forecast in CONUS
+#
+# Contiguous US (CONUS) boundaries for NDFD:
 #
 # Latitude:  20.1920 - 52.8077
 # Longitude: -130.1034 - -60.8856

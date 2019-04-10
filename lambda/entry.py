@@ -16,6 +16,10 @@ from pyproj import Proj
 p = Proj('+units=m +a=6371200.0 +b=6371200.0 +lon_0=265.0 +proj=lcc +lat_2=25.0 +lat_1=25.0 +lat_0=25.0')
 offset_x, offset_y = p(238.445999, 20.191999)
 
+# Square KM offset
+square_km = float(environ['SQUARE_KM'])
+km_offset = round(square_km / 2.5 / 2)
+
 aws = Session()
 athena = aws.client('athena')
 s3 = aws.resource('s3')
@@ -99,10 +103,10 @@ def execute_query(event):
     LatestTable=environ['LATEST_TABLE'],
     TimeZone=environ['TIMEZONE'],
     NdfdElement=environ['NDFD_ELEMENT'],
-    MaxX=x + 15,
-    MaxY=y + 15,
-    MinX=x - 15,
-    MinY=y - 15,
+    MaxX=x + km_offset,
+    MaxY=y + km_offset,
+    MinX=x - km_offset,
+    MinY=y - km_offset,
   )
   
   event['QueryExecutionId'] = athena.start_query_execution(
@@ -216,14 +220,14 @@ def create_map(event):
   for i in range(img_num):
     frames.append(Image.open('/tmp/{0:03d}.png'.format(i)))
   
-  frames[0].save('/tmp/test.gif', save_all=True, append_images=frames[1:], duration=750, loop=0)
+  frames[0].save('/tmp/out.gif', save_all=True, append_images=frames[1:], duration=750, loop=0)
   
   for i in range(img_num):
     remove('/tmp/{0:03d}.png'.format(i))
     
   bucket.upload_file(
-    Filename='/tmp/test.gif',
-    Key='test.gif',
+    Filename='/tmp/out.gif',
+    Key='{0}.gif'.format(environ['NDFD_ELEMENT']),
     ExtraArgs=dict(
       ACL='public-read',
       #CacheControl=
@@ -231,5 +235,5 @@ def create_map(event):
     ),
   )
   
-  remove('/tmp/test.gif')
+  remove('/tmp/out.gif')
   
