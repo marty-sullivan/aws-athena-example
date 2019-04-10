@@ -128,6 +128,7 @@ def create_map(event):
   global_lons = None
   global_lats = None
   desc = None
+  cbar = None
   max_val = float('-inf')
   min_val = float('inf')
     
@@ -191,8 +192,10 @@ def create_map(event):
     
     try: 
       levels = list(np.linspace(min_val, max_val, num=25))
-      contours = ax.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
-      fig.colorbar(contours, orientation='vertical', format='%.1f', pad=0.02)
+      contours = plt.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
+      
+      if not cbar:
+        cbar = fig.colorbar(contours, orientation='vertical', format='%.1f', pad=0.02)
     
     except:
       contours = None
@@ -200,7 +203,7 @@ def create_map(event):
     digits = []
     for i in range(len(dataset['vals'])):
       px, py = m(dataset['lons'][i], dataset['lats'][i])
-      digit = ax.text(px, py, dataset['vals'][i], fontsize=4, ha='center', va='center')
+      digit = plt.text(px, py, dataset['vals'][i], fontsize=4, ha='center', va='center')
       digits.append(digit)
     
     plt.savefig('/tmp/{0:03d}.png'.format(img_num), bbox_inches='tight', dpi=300)
