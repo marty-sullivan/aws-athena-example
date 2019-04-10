@@ -235,7 +235,7 @@ Resources:
           - Name: 'STACK_NAME'
             Value: !Sub '${AWS::StackName}'
           - Name: 'NDFD_ELEMENT'
-            Value: !Sub '${NDFD_ELEMENT}'
+            Value: !Sub '${NdfdElement}'
           - Name: 'CENTER_LATITUDE'
             Value: !Sub '${CenterLatitude}'
           - Name: 'CENTER_LONGITUDE'
