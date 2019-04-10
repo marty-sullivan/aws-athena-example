@@ -69,7 +69,7 @@ else
   
 fi
 
-echo "Running the Athena State Machine to generate your forecast animation (5-10 minutes)..."
+echo "Running the Athena State Machine to generate your forecast animation (5-15 minutes)..."
 
 ATHENA_MACHINE_ARN=$(aws cloudformation describe-stacks \
   --stack-name "$STACK_NAME" \
