@@ -20,6 +20,8 @@ offset_x, offset_y = p(238.445999, 20.191999)
 square_km = float(environ['SQUARE_KM'])
 km_offset = int(round(square_km / 2.5 / 2))
 
+fontsize = 1 if float(environ['SQUARE_KM']) > 75 else 4
+
 aws = Session()
 athena = aws.client('athena')
 s3 = aws.resource('s3')
@@ -204,7 +206,7 @@ def create_map(event):
     digits = []
     for i in range(len(dataset['vals'])):
       px, py = m(dataset['lons'][i], dataset['lats'][i])
-      digit = plt.text(px, py, dataset['vals'][i], fontsize=4, ha='center', va='center')
+      digit = plt.text(px, py, dataset['vals'][i], fontsize=fontsize, ha='center', va='center')
       digits.append(digit)
     
     plt.savefig('/tmp/{0:03d}.png'.format(img_num), bbox_inches='tight', dpi=300)
