@@ -162,7 +162,7 @@ Resources:
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
-        DatabaseName: 'athena_lambda_example_${NdfdElement}'
+        DatabaseName: !Sub 'athena_lambda_example_${NdfdElement}'
  
   BuildBucket:
     Type: 'AWS::S3::Bucket'
