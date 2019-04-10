@@ -1,9 +1,10 @@
 
 #
 # Name of the CloudFormation Stack to create
+# IMPORTANT: Use lower case letters only!
 #
 
-STACK_NAME="SFTemperatureForecast"
+STACK_NAME="mainetemperatureforecast"
 
 #
 # Indicates whether to auto-run the state machine at half-past each hour
@@ -17,13 +18,12 @@ AUTORUN="true"
 
 NDFD_ELEMENT="temp"
 
-
 #
 # Square KM for the forecast map
 # Note: Larger area is fine, just understand: Lambda will run longer and output data will be larger!
 #
 
-SQUARE_KM="75"
+SQUARE_KM="150"
 
 #
 # Coordinates for the center point of the forecast in CONUS
@@ -34,8 +34,8 @@ SQUARE_KM="75"
 # Longitude: -130.1034 - -60.8856
 #
 
-CENTER_LATITUDE="37.7749"
-CENTER_LONGITUDE="-122.4194"
+CENTER_LATITUDE="43.6591"
+CENTER_LONGITUDE="-70.2568"
 
 #
 # Timezone for timestamps in the forecast (must be valid TZ database name)

@@ -20,7 +20,7 @@ offset_x, offset_y = p(238.445999, 20.191999)
 square_km = float(environ['SQUARE_KM'])
 km_offset = int(round(square_km / 2.5 / 2))
 
-fontsize = 1 if float(environ['SQUARE_KM']) > 75 else 4
+fontsize = 2 if float(environ['SQUARE_KM']) > 75 else 4
 
 aws = Session()
 athena = aws.client('athena')
