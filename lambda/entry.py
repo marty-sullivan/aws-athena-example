@@ -177,8 +177,8 @@ def create_map(event):
     lat_2=25.0,
     llcrnrx=llcrnrx - 5000,
     llcrnry=llcrnry - 5000,
-    urcrnrx=urcrnrx - 5000,
-    urcrnry=urcrnry - 5000,
+    urcrnrx=urcrnrx + 5000,
+    urcrnry=urcrnry + 5000,
     ax=ax,
   )
   
