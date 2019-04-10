@@ -184,7 +184,7 @@ Resources:
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
-        DatabaseName: !Sub 'athena_lambda_example_${AWS::StackName}'
+        DatabaseName: !Sub '${AWS::StackName}'
  
   BuildBucket:
     Type: 'AWS::S3::Bucket'
