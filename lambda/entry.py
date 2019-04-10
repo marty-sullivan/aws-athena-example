@@ -188,7 +188,7 @@ def create_map(event):
   m.drawcounties(linewidth=0.5, zorder=15)
   
   for timestep, dataset in timesteps.items():
-    ax.set_title('{0} {1}'.format(desc, timestep))
+    ax.set_title('{0} {1}'.format(desc, timestep), fontdict=dict(fontfamily='monospace'))
     x, y = m(dataset['lons'], dataset['lats'])
     
     try: 
