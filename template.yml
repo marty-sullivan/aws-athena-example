@@ -7,31 +7,27 @@ Parameters:
   NdfdElement:
     Description: 'The NDFD weather element to retrieve (e.g. temp, mint, maxt, sky)'
     Type: 'String'
-    Default: 'temp'
 
   CenterLatitude:
     Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
     Type: 'Number'
-    Default: 42.4534
-    MaxValue: 52.8077
-    MinValue: 20.1920
     
   CenterLongitude:
     Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
     Type: 'Number'
-    Default: -76.4735
-    MaxValue: -60.8856
-    MinValue: -130.1034
   
   TimeZone:
     Description: 'The Timezone you would like for displayed times (must be valid TZ database name)'
     Type: 'String'
-    Default: 'America/New_York'
   
   CornellEasBucket:
     Description: 'The S3 bucket containing the Cornell EAS Convience Datasets'
     Type: 'String'
     Default: 'cornell-eas'
+
+  GitHubRepo:
+    Type: 'String'
+    Default: 'https://github.com/marty-sullivan/aws-athena-example.git'
 
 Globals:
   
@@ -56,6 +52,16 @@ Resources:
   
   OutputBucket:
     Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: 'daily-cleanup'
+            Status: 'Enabled'
+            Prefix: 'results/'
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+            ExpirationInDays: 1
+            NoncurrentVersionExpirationInDays: 1
   
   AthenaFunction:
     Type: 'AWS::Serverless::Function'
@@ -134,7 +140,17 @@ Resources:
             "PlotMap": {
               "Type": "Task",
               "Resource": "${AthenaFunction.Arn}",
-              "End": true
+              "End": true,
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "QueryIncompleteException"
+                  ],
+                  "BackoffRate": 1,
+                  "IntervalInSeconds": 30,
+                  "MaxAttempts": 59
+                }
+              ]
             }
           }
         }
@@ -146,5 +162,83 @@ Resources:
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
-        DatabaseName: 'cornell_eas_example'
-        
+        DatabaseName: 'athena_lambda_example_${NdfdElement}'
+ 
+  BuildBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: 'daily-cleanup'
+            Status: 'Enabled'
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+            ExpirationInDays: 1
+            NoncurrentVersionExpirationInDays: 1
+
+  BuildRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action: 'sts:AssumeRole'
+            Principal:
+              Service: !Sub 'codebuild.${AWS::URLSuffix}'
+            # Condition:
+            #   StringEquals:
+            #     'sts:ExternalId': !Sub '${AWS::AccountId}'
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSCloudFormationReadOnlyAccess'
+      Policies:
+        - PolicyName: 'build-permissions'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'cloudformation:*'
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*'
+                  - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31'
+              - Effect: 'Allow'
+                Action:
+                  - 'athena:*'
+                  - 'events:*'
+                  - 'glue:*'
+                  - 'iam:*'
+                  - 'lambda:*'
+                  - 'logs:*'
+                  - 's3:*'
+                  - 'states:*'
+                Resource:
+                  - '*'
+  
+  BuildProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Artifacts:
+        Type: 'NO_ARTIFACTS'
+      ServiceRole: !Sub '${BuildRole.Arn}'
+      Source:
+        Location: !Sub '${GitHubRepo}'
+        Type: 'GITHUB'
+        GitCloneDepth: 0
+      Environment:
+        ComputeType: 'BUILD_GENERAL1_SMALL'
+        Image: 'aws/codebuild/python:3.7.1'
+        Type: 'LINUX_CONTAINER'
+        EnvironmentVariables:
+          - Name: 'BUILD_BUCKET'
+            Value: !Sub '${BuildBucket}'
+          - Name: 'STACK_NAME'
+            Value: !Sub '${AWS::StackName}'
+          - Name: 'NDFD_ELEMENT'
+            Value: !Sub '${NDFD_ELEMENT}'
+          - Name: 'CENTER_LATITUDE'
+            Value: !Sub '${CenterLatitude}'
+          - Name: 'CENTER_LONGITUDE'
+            Value: !Sub '${CenterLongitude}'
+          - Name: 'TIMEZONE'
+            Value: !Sub '${TimeZone}'

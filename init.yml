@@ -1,8 +1,29 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >-
-  CodeBuild Project Resources for Athena/Lambda Example by Marty J. Sullivan
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'Resources for Athena/Lambda Example by Marty J. Sullivan'
 
 Parameters:
+
+  NdfdElement:
+    Description: 'The NDFD weather element to retrieve (e.g. temp, mint, maxt, sky)'
+    Type: 'String'
+
+  CenterLatitude:
+    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Type: 'Number'
+    
+  CenterLongitude:
+    Description: 'The Latitude of the center point of the forecast; Default is Cornell University'
+    Type: 'Number'
+  
+  TimeZone:
+    Description: 'The Timezone you would like for displayed times (must be valid TZ database name)'
+    Type: 'String'
+    
+  CornellEasBucket:
+    Description: 'The S3 bucket containing the Cornell EAS Convience Datasets'
+    Type: 'String'
+    Default: 'cornell-eas'
 
   GitHubRepo:
     Type: 'String'
@@ -12,6 +33,15 @@ Resources:
 
   BuildBucket:
     Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: 'daily-cleanup'
+            Status: 'Enabled'
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+            ExpirationInDays: 1
+            NoncurrentVersionExpirationInDays: 1
 
   BuildRole:
     Type: 'AWS::IAM::Role'
@@ -69,3 +99,13 @@ Resources:
         EnvironmentVariables:
           - Name: 'BUILD_BUCKET'
             Value: !Sub '${BuildBucket}'
+          - Name: 'STACK_NAME'
+            Value: !Sub '${AWS::StackName}'
+          - Name: 'NDFD_ELEMENT'
+            Value: !Sub '${NdfdElement}'
+          - Name: 'CENTER_LATITUDE'
+            Value: !Sub '${CenterLatitude}'
+          - Name: 'CENTER_LONGITUDE'
+            Value: !Sub '${CenterLongitude}'
+          - Name: 'TIMEZONE'
+            Value: !Sub '${TimeZone}'
