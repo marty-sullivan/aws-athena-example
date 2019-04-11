@@ -195,7 +195,7 @@ def create_map(event):
     
     try: 
       levels = list(np.linspace(min_val, max_val, num=25))
-      contours = plt.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.jet, alpha=0.5, antialiased=True, zorder=20)
+      contours = plt.tricontourf(x, y, dataset['vals'], levels=levels, cmap=plt.cm.spring, alpha=0.5, antialiased=True, zorder=20)
       
       if not cbar:
         cbar = fig.colorbar(contours, orientation='vertical', format='%.1f', pad=0.02)

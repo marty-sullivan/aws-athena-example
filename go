@@ -19,55 +19,57 @@ then
       "CenterLatitude=$CENTER_LATITUDE" \
       "CenterLongitude=$CENTER_LONGITUDE" \
       "TimeZone=$TIMEZONE" 
-else
-
-  echo "$STACK_NAME exists, no need to create..."
-  
-fi
-
-BUILD_PROJECT=$(aws cloudformation describe-stacks \
-  --stack-name "$STACK_NAME" \
-  --query 'Stacks[0].Outputs[?OutputKey==`BuildProject`].OutputValue' \
-  --output text)
-
-echo "Building Athena/Lambda State Machine via AWS CodeBuild (3-5 minutes)..."
-
-BUILD_ID=$(aws codebuild start-build \
-  --project-name "$BUILD_PROJECT" \
-  --query 'build.id' \
-  --output text)
-
-echo "You can watch progress at the following URI:"
-echo "https://console.aws.amazon.com/codesuite/codebuild/projects/$BUILD_PROJECT/build/$BUILD_ID/log"
-
-while [ true ]
-do
-
-  sleep 10
-  
-  BUILD_STATUS=$(aws codebuild batch-get-builds \
-    --ids "$BUILD_ID" \
-    --query 'builds[0].buildStatus' \
+      
+  BUILD_PROJECT=$(aws cloudformation describe-stacks \
+    --stack-name "$STACK_NAME" \
+    --query 'Stacks[0].Outputs[?OutputKey==`BuildProject`].OutputValue' \
     --output text)
   
-  if [ "$BUILD_STATUS" != "IN_PROGRESS" ]
+  echo "Building Athena/Lambda State Machine via AWS CodeBuild (3-5 minutes)..."
+  
+  BUILD_ID=$(aws codebuild start-build \
+    --project-name "$BUILD_PROJECT" \
+    --query 'build.id' \
+    --output text)
+  
+  echo "You can watch progress at the following URI:"
+  echo "https://console.aws.amazon.com/codesuite/codebuild/projects/$BUILD_PROJECT/build/$BUILD_ID/log"
+  
+  while [ true ]
+  do
+  
+    sleep 10
+    
+    BUILD_STATUS=$(aws codebuild batch-get-builds \
+      --ids "$BUILD_ID" \
+      --query 'builds[0].buildStatus' \
+      --output text)
+    
+    if [ "$BUILD_STATUS" != "IN_PROGRESS" ]
+    then
+      break
+    fi
+  
+  done
+  
+  if [ "$BUILD_STATUS" != "SUCCEEDED" ]
   then
-    break
+  
+    echo "There was a problem with the build, report the logs at the link above to the GitHub repository!"
+    exit 1
+    
+  else
+  
+    echo "Build complete!"
+    
   fi
 
-done
-
-if [ "$BUILD_STATUS" != "SUCCEEDED" ]
-then
-
-  echo "There was a problem with the build, report the logs at the link above to the GitHub repository!"
-  exit 1
-  
 else
 
-  echo "Build complete!"
+  echo "$STACK_NAME exists, no need to create/build..."
   
 fi
+
 
 echo "Running the Athena State Machine to generate your forecast animation (5-15 minutes)..."
 
