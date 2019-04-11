@@ -4,7 +4,7 @@
 # IMPORTANT: Use lower case letters only!
 #
 
-STACK_NAME="mainetemperatureforecast"
+STACK_NAME="fingerlakestemperatureforecast"
 
 #
 # Indicates whether to auto-run the state machine at half-past each hour
@@ -23,7 +23,7 @@ NDFD_ELEMENT="temp"
 # Note: Larger area is fine, just understand: Lambda will run longer and output data will be larger!
 #
 
-SQUARE_KM="150"
+SQUARE_KM="75"
 
 #
 # Coordinates for the center point of the forecast in CONUS
@@ -34,8 +34,8 @@ SQUARE_KM="150"
 # Longitude: -130.1034 - -60.8856
 #
 
-CENTER_LATITUDE="43.6591"
-CENTER_LONGITUDE="-70.2568"
+CENTER_LATITUDE="42.6777"
+CENTER_LONGITUDE="-76.6990"
 
 #
 # Timezone for timestamps in the forecast (must be valid TZ database name)
