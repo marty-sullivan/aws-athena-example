@@ -15,7 +15,6 @@ fi
 
 STACK_DESCRIPTION=$(aws cloudformation describe-stacks --stack-name $STACK_NAME 2>&1)
 
-# if ! echo "$STACK_DESCRIPTION" | grep -q "locate\scredentials|specify\sa\sregion"
 if [[ $STACK_DESCRIPTION == *"locate credentials"* || $STACK_DESCRIPTION == *"specify a region"* ]]
 then
   

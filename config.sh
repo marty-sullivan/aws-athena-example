@@ -21,6 +21,7 @@ NDFD_ELEMENT="temp"
 #
 # Square KM for the forecast map
 # Note: Larger area is fine, just understand: Lambda will run longer and output data will be larger!
+# Note: Areas larger than 200 km^2 may cause Lambda to time out
 #
 
 SQUARE_KM="75"

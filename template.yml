@@ -16,7 +16,7 @@ Parameters:
 Outputs:
   
   AnimationUri:
-    Value: !Sub 'https://s3.amazonaws.com/${OutputBucket}/output.gif'
+    Value: !Sub 'https://s3.amazonaws.com/${OutputBucket}/forecast.gif'
   
   BuildBucket:
     Value: !Sub '${BuildBucket}'
