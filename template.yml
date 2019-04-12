@@ -16,7 +16,7 @@ Parameters:
 Outputs:
   
   AnimationUri:
-    Value: !Sub 'https://s3.amazonaws.com/${OutputBucket}/${NdfdElement}.gif'
+    Value: !Sub 'https://s3.amazonaws.com/${OutputBucket}/output.gif'
   
   BuildBucket:
     Value: !Sub '${BuildBucket}'
