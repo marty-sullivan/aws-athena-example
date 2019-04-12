@@ -2,9 +2,7 @@
 
 source ./config.sh
 
-AWS_CLI_STATUS=$(aws 2>&1)
-
-if [[ $AWS_CLI_STATUS == *"bash: aws:"* ]]
+if ! [ -x "$(command -v aws)" ]
 then
 
   echo "ERROR: You must install the awscli"
@@ -18,7 +16,7 @@ STACK_DESCRIPTION=$(aws cloudformation describe-stacks --stack-name $STACK_NAME 
 if [[ $STACK_DESCRIPTION == *"locate credentials"* || $STACK_DESCRIPTION == *"specify a region"* ]]
 then
   
-  echo "ERROR: You must set your AWS credentials and default region via Environment Variables"
+  echo "ERROR: You must set your AWS credentials/profile and default region via Environment Variables"
   echo "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
   exit 1
   
