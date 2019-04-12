@@ -2,9 +2,30 @@
 
 source ./config.sh
 
-STACK_EXISTS=$()
+AWS_CLI_STATUS=$(aws 2>&1)
 
-if aws cloudformation describe-stacks --stack-name $STACK_NAME 2>&1 | grep -q "ValidationError"
+if [[ $AWS_CLI_STATUS == *"bash: aws:"* ]]
+then
+
+  echo "ERROR: You must install the awscli"
+  echo "https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html"
+  exit 1
+
+fi
+
+STACK_DESCRIPTION=$(aws cloudformation describe-stacks --stack-name $STACK_NAME 2>&1)
+
+# if ! echo "$STACK_DESCRIPTION" | grep -q "locate\scredentials|specify\sa\sregion"
+if [[ $STACK_DESCRIPTION == *"locate credentials"* || $STACK_DESCRIPTION == *"specify a region"* ]]
+then
+  
+  echo "ERROR: You must set your AWS credentials and default region via Environment Variables"
+  echo "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html"
+  exit 1
+  
+fi
+
+if [[ $STACK_DESCRIPTION == *"ValidationError"* ]]
 then
 
   echo "Initializing $STACK_NAME CloudFormation Stack (1-2 minutes)..."
@@ -12,13 +33,7 @@ then
   aws cloudformation deploy \
     --stack-name "$STACK_NAME" \
     --template-file ./init.yml \
-    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-    --parameter-overrides \
-      "NdfdElement=$NDFD_ELEMENT" \
-      "SquareKm=$SQUARE_KM" \
-      "CenterLatitude=$CENTER_LATITUDE" \
-      "CenterLongitude=$CENTER_LONGITUDE" \
-      "TimeZone=$TIMEZONE" 
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
       
   BUILD_PROJECT=$(aws cloudformation describe-stacks \
     --stack-name "$STACK_NAME" \
@@ -70,7 +85,6 @@ else
   
 fi
 
-
 echo "Running the Athena State Machine to generate your forecast animation (5-15 minutes)..."
 
 ATHENA_MACHINE_ARN=$(aws cloudformation describe-stacks \
@@ -80,7 +94,7 @@ ATHENA_MACHINE_ARN=$(aws cloudformation describe-stacks \
 
 EXECUTION_ARN=$(aws stepfunctions start-execution \
   --state-machine-arn "$ATHENA_MACHINE_ARN" \
-  --input "{ }" \
+  --input "{ \"NdfdElement\":\"$NDFD_ELEMENT\", \"SquareKm\":$SQUARE_KM, \"CenterLatitude\":$CENTER_LATITUDE, \"CenterLongitude\":$CENTER_LONGITUDE, \"TimeZone\":\"$TIMEZONE\" }" \
   --query 'executionArn' \
   --output text)
   

@@ -4,26 +4,6 @@ Description: 'Resources for Athena/Lambda Example by Marty J. Sullivan'
 
 Parameters:
 
-  NdfdElement:
-    Description: 'The NDFD weather element to retrieve (e.g. temp, mint, maxt, sky)'
-    Type: 'String'
-
-  SquareKm:
-    Description: 'The Square KM of the forecast map'
-    Type: 'Number'
-
-  CenterLatitude:
-    Description: 'The Latitude of the center point of the forecast; Default is Cayuga Lake'
-    Type: 'Number'
-    
-  CenterLongitude:
-    Description: 'The Latitude of the center point of the forecast; Default is Cayuga Lake'
-    Type: 'Number'
-  
-  TimeZone:
-    Description: 'The Timezone you would like for displayed times (must be valid TZ database name)'
-    Type: 'String'
-  
   CornellEasBucket:
     Description: 'The S3 bucket containing the Cornell EAS Convience Datasets'
     Type: 'String'
@@ -59,16 +39,11 @@ Globals:
     Timeout: 900
     Environment:
       Variables:
-        CENTER_LATITUDE: !Sub '${CenterLatitude}'
-        CENTER_LONGITUDE: !Sub '${CenterLongitude}'
-        NDFD_ELEMENT: !Sub '${NdfdElement}'
-        SQUARE_KM: !Sub '${SquareKm}'
         NDFD_DATABASE: !Sub '${CornellEasStack.Outputs.NdfdDatabase}'
         COORDINATES_TABLE: !Sub '${CornellEasStack.Outputs.NdfdCoordinatesTable}'
         ELEMENTS_TABLE: !Sub '${CornellEasStack.Outputs.NdfdElementsTable}'
         LATEST_TABLE: !Sub '${CornellEasStack.Outputs.NdfdLatestTable}'
         OUTPUT_BUCKET: !Sub '${OutputBucket}'
-        TIMEZONE: !Sub '${TimeZone}'
 
 Resources:
   
@@ -256,13 +231,3 @@ Resources:
             Value: !Sub '${BuildBucket}'
           - Name: 'STACK_NAME'
             Value: !Sub '${AWS::StackName}'
-          - Name: 'NDFD_ELEMENT'
-            Value: !Sub '${NdfdElement}'
-          - Name: 'SQUARE_KM'
-            Value: !Sub '${SquareKm}'
-          - Name: 'CENTER_LATITUDE'
-            Value: !Sub '${CenterLatitude}'
-          - Name: 'CENTER_LONGITUDE'
-            Value: !Sub '${CenterLongitude}'
-          - Name: 'TIMEZONE'
-            Value: !Sub '${TimeZone}'

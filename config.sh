@@ -4,10 +4,10 @@
 # IMPORTANT: Use lower case letters only!
 #
 
-STACK_NAME="fingerlakestemperatureforecast"
+STACK_NAME="ndfdforecast"
 
 #
-# Indicates whether to auto-run the state machine at half-past each hour
+# Indicates whether to auto-run the state machine daily at 00:30 UTC
 #
 
 AUTORUN="true"

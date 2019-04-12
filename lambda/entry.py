@@ -17,10 +17,6 @@ p = Proj('+units=m +a=6371200.0 +b=6371200.0 +lon_0=265.0 +proj=lcc +lat_2=25.0 
 offset_x, offset_y = p(238.445999, 20.191999)
 
 # Square KM offset
-square_km = float(environ['SQUARE_KM'])
-km_offset = int(round(square_km / 2.5 / 2))
-
-fontsize = 2 if float(environ['SQUARE_KM']) > 75 else 4
 
 aws = Session()
 athena = aws.client('athena')
@@ -95,7 +91,8 @@ def lambda_handler(event, context):
   return event
   
 def execute_query(event):
-  grid_x, grid_y = p(environ['CENTER_LONGITUDE'], environ['CENTER_LATITUDE'])
+  km_offset = int(round(event['SquareKm'] / 2.5 / 2))
+  grid_x, grid_y = p(event['CenterLongitude'], event['CenterLatitude'])
   x = int(round((grid_x - offset_x) / 2539.703))
   y = int(round((grid_y - offset_y) / 2539.703))
   
@@ -103,8 +100,8 @@ def execute_query(event):
     CoordinatesTable=environ['COORDINATES_TABLE'],
     ElementsTable=environ['ELEMENTS_TABLE'],
     LatestTable=environ['LATEST_TABLE'],
-    TimeZone=environ['TIMEZONE'],
-    NdfdElement=environ['NDFD_ELEMENT'],
+    TimeZone=event['TimeZone'],
+    NdfdElement=event['NdfdElement'],
     MaxX=x + km_offset,
     MaxY=y + km_offset,
     MinX=x - km_offset,
@@ -127,6 +124,7 @@ def execute_query(event):
 
 def create_map(event):
   timesteps = { }
+  fontsize = 2 if float(event['SquareKm']) > 75 else 4
   global_lons = None
   global_lats = None
   desc = None
@@ -231,7 +229,7 @@ def create_map(event):
     
   bucket.upload_file(
     Filename='/tmp/out.gif',
-    Key='{0}.gif'.format(environ['NDFD_ELEMENT']),
+    Key='forecast.gif',
     ExtraArgs=dict(
       ACL='public-read',
       #CacheControl=
