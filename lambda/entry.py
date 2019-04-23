@@ -16,19 +16,20 @@ from pyproj import Proj
 p = Proj('+units=m +a=6371200.0 +b=6371200.0 +lon_0=265.0 +proj=lcc +lat_2=25.0 +lat_1=25.0 +lat_0=25.0')
 offset_x, offset_y = p(238.445999, 20.191999)
 
-# Square KM offset
-
+# Initialize boto3 clients
 aws = Session()
 athena = aws.client('athena')
 s3 = aws.resource('s3')
 bucket = s3.Bucket(environ['OUTPUT_BUCKET'])
 
+# Some custom exceptions for state machine logic
 class QueryIncompleteException(Exception):
   pass
 
 class QueryFailedException(Exception):
   pass
 
+# Athena Query Template
 QUERY_TEMPLATE = '''SELECT
   concat(name,' (', unit, ')') as description,
   date_format(
@@ -69,11 +70,17 @@ ORDER BY
   forecast_time
 '''
 
+# Lambda Entry Point
 def lambda_handler(event, context):
+  
+  # No QueryStatus means Athena Query hasn't been executed yet
   if not event or 'QueryStatus' not in event:
     event = execute_query(event)
   
+  # Otherwise, execute the query
   else:
+    
+    # Get Query Information
     query_execution = athena.get_query_execution(
       QueryExecutionId=event['QueryExecutionId'],
     )['QueryExecution']
@@ -85,17 +92,22 @@ def lambda_handler(event, context):
     
     if event['QueryStatus'] in ['FAILED']:
       raise QueryFailedException('QueryFailedException')
-      
+    
+    # If query has completed, plot the map
     create_map(event)
     
   return event
-  
+
+# Executes the Athena Query using state machine parameters 
 def execute_query(event):
+  
+  # Prepare NDFD projection info for the center latitude/longitude
   km_offset = int(round(event['SquareKm'] / 2.5 / 2))
   grid_x, grid_y = p(event['CenterLongitude'], event['CenterLatitude'])
   x = int(round((grid_x - offset_x) / 2539.703))
   y = int(round((grid_y - offset_y) / 2539.703))
   
+  # Populate the Athena Query Template with params for this state machine run
   query_string = QUERY_TEMPLATE.format(
     CoordinatesTable=environ['COORDINATES_TABLE'],
     ElementsTable=environ['ELEMENTS_TABLE'],
@@ -108,6 +120,7 @@ def execute_query(event):
     MinY=y - km_offset,
   )
   
+  # Execute the query via athena api
   event['QueryExecutionId'] = athena.start_query_execution(
     QueryString=query_string,
     QueryExecutionContext=dict(
@@ -122,7 +135,10 @@ def execute_query(event):
   
   return event
 
+# Plots the map and compiles the GIF animation
 def create_map(event):
+  
+  # Initialize some vars
   timesteps = { }
   fontsize = 2 if float(event['SquareKm']) > 75 else 4
   global_lons = None
@@ -132,6 +148,7 @@ def create_map(event):
   max_val = float('-inf')
   min_val = float('inf')
     
+  # Retrieve the rows / results of the query execution for this machine run
   resp = athena.get_query_results(
     QueryExecutionId=event['QueryExecutionId'],
   )
@@ -161,6 +178,7 @@ def create_map(event):
       NextToken=resp['NextToken']
     ) if 'NextToken' in resp else None
   
+  # Initialize the Basemap used by each animation frame
   img_num = 0
   fig, ax = plt.subplots()
   
@@ -187,6 +205,8 @@ def create_map(event):
   m.drawrivers(color='blue')
   m.drawcounties(linewidth=0.5, zorder=15)
   
+  # Draw the labels and contours for each timestep in the query results and 
+  # save each as a PNG image
   for timestep, dataset in timesteps.items():
     ax.set_title('{0} {1}'.format(desc, timestep), fontdict=dict(fontfamily='monospace'))
     x, y = m(dataset['lons'], dataset['lats'])
@@ -217,13 +237,14 @@ def create_map(event):
       for c in contours.collections:
         c.remove()
   
+  # Append each frame to a GIF animation
   frames = []
-  
   for i in range(img_num):
     frames.append(Image.open('/tmp/{0:03d}.png'.format(i)))
   
-  frames[0].save('/tmp/out.gif', save_all=True, append_images=frames[1:], duration=750, loop=0)
+  frames[0].save('/tmp/out.gif', save_all=True, append_images=frames[1:], duration=1000, loop=0)
   
+  # Clean up local PNGs, GIF and upload the animation to the S3 Output Bucket
   for i in range(img_num):
     remove('/tmp/{0:03d}.png'.format(i))
     
