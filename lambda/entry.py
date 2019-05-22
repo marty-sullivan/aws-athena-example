@@ -124,7 +124,7 @@ def execute_query(event):
   event['QueryExecutionId'] = athena.start_query_execution(
     QueryString=query_string,
     QueryExecutionContext=dict(
-      Database=environ['NDFD_DATABASE'],
+      Database=environ['CORNELL_EAS_DATABASE'],
     ),
     ResultConfiguration=dict(
       OutputLocation=datetime.utcnow().strftime('s3://{0}/results/%Y-%m-%d-%H-%M-%S'.format(environ['OUTPUT_BUCKET'])),

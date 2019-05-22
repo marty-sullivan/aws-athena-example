@@ -39,8 +39,8 @@ Globals:
     Timeout: 900
     Environment:
       Variables:
-        NDFD_DATABASE: !Sub '${CornellEasStack.Outputs.NdfdDatabase}'
-        COORDINATES_TABLE: !Sub '${CornellEasStack.Outputs.NdfdCoordinatesTable}'
+        CORNELL_EAS_DATABASE: !Sub '${CornellEasStack.Outputs.CornellEasDatabase}'
+        COORDINATES_TABLE: !Sub '${CornellEasStack.Outputs.NdfdNdgdCoordinatesTable}'
         ELEMENTS_TABLE: !Sub '${CornellEasStack.Outputs.NdfdElementsTable}'
         LATEST_TABLE: !Sub '${CornellEasStack.Outputs.NdfdLatestTable}'
         OUTPUT_BUCKET: !Sub '${OutputBucket}'
@@ -155,11 +155,11 @@ Resources:
   CornellEasStack:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
-      TemplateURL: !Sub 'https://s3.amazonaws.com/${CornellEasBucket}/datasets/master/ndfd/metadata/template.yml'
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${CornellEasBucket}/metadata/cloudformation/cornell-eas-1.0.3.yml'
       Parameters:
         CornellEasBucket: !Sub '${CornellEasBucket}'
         Environment: 'master'
-        DatabaseName: !Sub '${AWS::StackName}'
+        GlueDatabaseSuffix: !Sub '${AWS::StackName}'
  
   BuildBucket:
     Type: 'AWS::S3::Bucket'
